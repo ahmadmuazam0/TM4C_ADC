@@ -13,12 +13,12 @@ void GPIOF_Handler(void)
 {
   if (GPIO_PORTF_MIS_R & 0x10) /* check if interrupt causes by PF4/SW1*/
     {
-      GPIO_PORTF_DATA_R |= 0x0A;
+      GPIO_PORTF_DATA_R = 0x0A;
       GPIO_PORTF_ICR_R |= 0x10; /* clear the interrupt flag */
      }
     else if (GPIO_PORTF_MIS_R & 0x01) /* check if interrupt causes by PF0/SW2 */
     {
-        GPIO_PORTF_DATA_R &= 0x02;
+        GPIO_PORTF_DATA_R = 0x04;
         GPIO_PORTF_ICR_R |= 0x01; /* clear the interrupt flag */
     }
 }

@@ -15,7 +15,6 @@ volatile uint32_t ui32loop;
 
 void Delay(unsigned long counter);
 char mesg[30];
-//String mesg;
 float voltage;
 unsigned int adc_value, adc_value_p;
 
@@ -82,7 +81,7 @@ int main(void)
              voltage = (adc_value * 0.0008);
 //            sprintf(mesg, "\r\nVoltage = %f Volts", voltage);
 
-//             printstring(" Message Echos back");
+             printstring(" Message Echos back");
 //             if(adc_value > 2050){
 //                     GPIO_PORTF_DATA_R   =   0X04;
 //                 }
