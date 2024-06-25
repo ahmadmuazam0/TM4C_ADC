@@ -27,56 +27,34 @@
  *
  */
 
-#ifndef LED_INIT_H_
-#define LED_INIT_H_
+#ifndef TIMER_INIT_H_
+#define TIMER_INIT_H_
 
+#include<stdint.h>
+#include"inc/tm4c123gh6pm.h"
 
-void GPIOF_Handler(void)
-{
-  if (GPIO_PORTF_MIS_R & 0x10) /* check if interrupt causes by PF4/SW1*/
-    {
-      GPIO_PORTF_DATA_R |= 0x0A;
-      GPIO_PORTF_ICR_R |= 0x10; /* clear the interrupt flag */
-     }
-    else if (GPIO_PORTF_MIS_R & 0x01) /* check if interrupt causes by PF0/SW2 */
-    {
-        GPIO_PORTF_DATA_R &= 0x02;
-        GPIO_PORTF_ICR_R |= 0x01; /* clear the interrupt flag */
-    }
-}
+void Timer_init(){
 
+    // Enable the Clock for Timer0_A
+    SYSCTL_RCGCTIMER_R |= SYSCTL_RCGCTIMER_R0;
 
-void leds_init(void)
-{
-    SYSCTL_RCGCGPIO_R |= (1<<5);   /* Set bit5 of RCGCGPIO to enable clock to PORTF*/
+    TIMER0_CTL_R    &=  0;  /* Initially disable the Timers*/
+    TIMER0_CFG_R    &=  0;  // Selection of 32-bit timer out of 16/32 bit option.
+    TIMER0_TAMR_R   |=  (TIMER_TAMR_TAMR_PERIOD | (1<<4));  // Selection of Periodic Mode of Timer A  and Select the Direction of Timer is Increment
+    TIMER0_TAILR_R  =   0x00000C80;    //  Time to count N Second = Frequency * N = 16MHz * 1 = F42400 = 16000000       0X0004E200 = 20mS
+//    TIMER0_IMR_R    |=  TIMER_IMR_TATOIM;   // Enable interrupt on time-up
 
-    volatile unsigned long delay;
-    GPIO_PORTF_LOCK_R = 0x4C4F434B;   /* unlock commit register */
-       GPIO_PORTF_CR_R = 0x01;           /* make PORTF0 configurable */
-       GPIO_PORTF_LOCK_R = 0;            /* lock commit register */
+    // Enable the Timer to Start Counting & Enable the Timer Interrupt to trigger ADC Sampling
 
+    TIMER0_CTL_R    |=  (33<<0);  // (Enable 5th and 1st bit) --> (1<<5)|(1<<0); To enable the Interrupt trigger the corresponding ADC
 
-       /*Initialize PF3 as a digital output, PF0 and PF4 as digital input pins */
-
-       GPIO_PORTF_DIR_R &= ~(1<<4)|~(1<<0);  /* Set PF4 and PF0 as a digital input pins */
-       GPIO_PORTF_DIR_R |= 0x0E;           /* Set PF3,PF2,PF1 as digital output to control RGB LED */
-       GPIO_PORTF_DEN_R |= 0x1F;             /* make PORTF4-0 digital pins */
-       GPIO_PORTF_PUR_R |= (1<<4)|(1<<0);             /* enable pull up for PORTF4, 0 */
-
-       /*  Interrupt configuration for Input buttons*/
-       GPIO_PORTF_IS_R  &= ~(1<<4)|~(1<<0);        /* make bit 4, 0 edge sensitive */
-       GPIO_PORTF_IBE_R &=~(1<<4)|~(1<<0);         /* trigger is controlled by IEV */
-       GPIO_PORTF_IEV_R &= ~(1<<4)|~(1<<0);        /* falling edge trigger */
-       GPIO_PORTF_ICR_R |= (1<<4)|(1<<0);          /* clear any prior interrupt */
-       GPIO_PORTF_IM_R  |= (1<<4)|(1<<0);          /* unmask interrupt */
-
-       /* enable interrupt in NVIC and set priority to 3 */
-       NVIC_PRI30_R = 3 << 5;     /* set interrupt priority to 3 */
-       NVIC_EN0_R |= (1<<30);  /* enable IRQ30 (D30 of ISER[0]) */
+//    NVIC_EN0_R      |=  (1<<19);    // Enable 19th interrupt i.e. for Timer0_A 16/32bit.  Disabling this interrupt because we have selected the interrupt to trigger the ADC
 
 
 }
 
 
 
-#endif /* LED_INIT_H_ */
+
+
+#endif /* TIMER_INIT_H_ */
